@@ -61,13 +61,6 @@ int aws_ecc_oid_from_curve_name(enum aws_ecc_curve_name curve_name, struct aws_b
     return AWS_OP_SUCCESS;
 }
 
-static void s_aws_ecc_key_pair_destroy(struct aws_ecc_key_pair *key_pair) {
-    if (key_pair) {
-        AWS_FATAL_ASSERT(key_pair->vtable->destroy && "ECC KEY PAIR destroy function must be included on the vtable");
-        key_pair->vtable->destroy(key_pair);
-    }
-}
-
 int aws_ecc_key_pair_derive_public_key(struct aws_ecc_key_pair *key_pair) {
     AWS_FATAL_ASSERT(key_pair->vtable->derive_pub_key && "ECC KEY PAIR derive function must be included on the vtable");
     return key_pair->vtable->derive_pub_key(key_pair);
@@ -210,18 +203,10 @@ int aws_der_decoder_load_ecc_key_pair(
     return AWS_OP_SUCCESS;
 }
 
-void aws_ecc_key_pair_acquire(struct aws_ecc_key_pair *key_pair) {
-    aws_atomic_fetch_add(&key_pair->ref_count, 1);
+struct aws_ecc_key_pair *aws_ecc_key_pair_acquire(struct aws_ecc_key_pair *key_pair) {
+    return aws_ref_count_acquire(&key_pair->ref_count);
 }
 
 void aws_ecc_key_pair_release(struct aws_ecc_key_pair *key_pair) {
-    if (key_pair == NULL) {
-        return;
-    }
-
-    size_t old_value = aws_atomic_fetch_sub(&key_pair->ref_count, 1);
-
-    if (old_value == 1) {
-        s_aws_ecc_key_pair_destroy(key_pair);
-    }
+    aws_ref_count_release(&key_pair->ref_count);
 }

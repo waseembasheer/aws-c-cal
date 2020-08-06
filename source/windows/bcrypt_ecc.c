@@ -264,7 +264,8 @@ static struct aws_ecc_key_pair *s_alloc_pair_and_init_buffers(
     key_impl->key_pair.curve_name = curve_name;
     key_impl->key_pair.impl = key_impl;
     key_impl->key_pair.vtable = &s_vtable;
-    aws_atomic_init_int(&key_impl->key_pair.ref_count, 1);
+    aws_ref_count_init(
+        &key_impl->key_pair.ref_count, &key_impl->key_pair, (aws_on_zero_ref_count_callback *)s_destroy_key);
 
     size_t s_key_coordinate_size = aws_ecc_key_coordinate_byte_size_from_curve_name(curve_name);
 
@@ -377,7 +378,8 @@ struct aws_ecc_key_pair *aws_ecc_key_pair_new_generate_random(
     key_impl->key_pair.curve_name = curve_name;
     key_impl->key_pair.impl = key_impl;
     key_impl->key_pair.vtable = &s_vtable;
-    aws_atomic_init_int(&key_impl->key_pair.ref_count, 1);
+    aws_ref_count_init(
+        &key_impl->key_pair.ref_count, &key_impl->key_pair, (aws_on_zero_ref_count_callback *)s_destroy_key);
 
     size_t key_coordinate_size = aws_ecc_key_coordinate_byte_size_from_curve_name(curve_name);
 

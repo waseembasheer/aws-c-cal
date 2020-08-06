@@ -6,9 +6,9 @@
  */
 #include <aws/cal/exports.h>
 
-#include <aws/common/atomics.h>
 #include <aws/common/byte_buf.h>
 #include <aws/common/common.h>
+#include <aws/common/ref_count.h>
 
 enum aws_ecc_curve_name {
     AWS_CAL_ECDSA_P256,
@@ -39,7 +39,7 @@ struct aws_ecc_key_pair_vtable {
 
 struct aws_ecc_key_pair {
     struct aws_allocator *allocator;
-    struct aws_atomic_var ref_count;
+    struct aws_ref_count ref_count;
     enum aws_ecc_curve_name curve_name;
     struct aws_byte_buf key_buf;
     struct aws_byte_buf pub_x;
@@ -54,7 +54,7 @@ AWS_EXTERN_C_BEGIN
 /**
  * Adds one to an ecc key pair's ref count.
  */
-AWS_CAL_API void aws_ecc_key_pair_acquire(struct aws_ecc_key_pair *key_pair);
+AWS_CAL_API struct aws_ecc_key_pair *aws_ecc_key_pair_acquire(struct aws_ecc_key_pair *key_pair);
 
 /**
  * Subtracts one from an ecc key pair's ref count.  If ref count reaches zero, the key pair is destroyed.

@@ -175,7 +175,8 @@ struct aws_ecc_key_pair *aws_ecc_key_pair_new_from_private_key(
     key_impl->key_pair.allocator = allocator;
     key_impl->key_pair.vtable = &vtable;
     key_impl->key_pair.impl = key_impl;
-    aws_atomic_init_int(&key_impl->key_pair.ref_count, 1);
+    aws_ref_count_init(
+        &key_impl->key_pair.ref_count, &key_impl->key_pair, (aws_on_zero_ref_count_callback *)s_key_pair_destroy);
     aws_byte_buf_init_copy_from_cursor(&key_impl->key_pair.priv_d, allocator, *priv_key);
 
     BIGNUM *priv_key_num = BN_bin2bn(key_impl->key_pair.priv_d.buffer, key_impl->key_pair.priv_d.len, NULL);
@@ -199,7 +200,8 @@ struct aws_ecc_key_pair *aws_ecc_key_pair_new_generate_random(
     key_impl->key_pair.allocator = allocator;
     key_impl->key_pair.vtable = &vtable;
     key_impl->key_pair.impl = key_impl;
-    aws_atomic_init_int(&key_impl->key_pair.ref_count, 1);
+    aws_ref_count_init(
+        &key_impl->key_pair.ref_count, &key_impl->key_pair, (aws_on_zero_ref_count_callback *)s_key_pair_destroy);
 
     if (EC_KEY_generate_key(key_impl->ec_key) != 1) {
         goto error;
@@ -245,7 +247,8 @@ struct aws_ecc_key_pair *aws_ecc_key_pair_new_from_public_key(
     key_impl->key_pair.allocator = allocator;
     key_impl->key_pair.vtable = &vtable;
     key_impl->key_pair.impl = key_impl;
-    aws_atomic_init_int(&key_impl->key_pair.ref_count, 1);
+    aws_ref_count_init(
+        &key_impl->key_pair.ref_count, &key_impl->key_pair, (aws_on_zero_ref_count_callback *)s_key_pair_destroy);
 
     if (aws_byte_buf_init_copy_from_cursor(&key_impl->key_pair.pub_x, allocator, *public_key_x)) {
         s_key_pair_destroy(&key_impl->key_pair);
@@ -329,7 +332,8 @@ struct aws_ecc_key_pair *aws_ecc_key_pair_new_from_asn1(
         key_impl->key_pair.allocator = allocator;
         key_impl->key_pair.vtable = &vtable;
         key_impl->key_pair.impl = key_impl;
-        aws_atomic_init_int(&key_impl->key_pair.ref_count, 1);
+        aws_ref_count_init(
+            &key_impl->key_pair.ref_count, &key_impl->key_pair, (aws_on_zero_ref_count_callback *)s_key_pair_destroy);
         key = &key_impl->key_pair;
 
         struct aws_byte_buf temp_buf;
